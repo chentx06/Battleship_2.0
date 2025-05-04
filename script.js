@@ -127,3 +127,4 @@ window.addEventListener('DOMContentLoaded', () => {
 
 //next steps:
 //add flipping
+//modify drag and drop more so it's more accurate
