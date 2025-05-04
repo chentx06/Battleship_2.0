@@ -1,0 +1,103 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f4f8;
+    color: #222;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2 {
+    text-align: center;
+    font-size: 40px;
+}
+
+#game-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 60px;
+    max-width: 100%;
+}
+
+#left-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+#ship-pool {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ship {
+    background-color: #0077b6;
+    border: 2px solid #023e8a;
+    cursor: grab;
+    display: inline-block;
+}
+
+/* Buttons */
+#controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #48cae4;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.board-wrapper {
+    text-align: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-template-rows: repeat(10, 40px);
+    gap: 2px;
+    background-color: #e0e0e0;
+    padding: 5px;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border: 1px solid #999;
+}
+
+.cell.hit {
+    background-color: red;
+}
+
+.cell.miss {
+    background-color: lightgray;
+}
+
+.cell.ship {
+    background-color: #0077b6;
+}
+
+#vc-feedback {
+    margin-top: 30px;
+    font-size: 30px;
+    text-align: center;
+    background-color: #caf0f8;
+    padding: 10px;
+    border-radius: 5px;
+}
