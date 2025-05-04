@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name ="viewport" content ="width = device-width, initial-scale = 1.0"/>
+    <title>Accessible Battleship</title>
+    <link rel ="stylesheet" href ="style.css" />
+</head>
+<body>
+<h1>Battleship</h1>
+
+<div id ="game-container">
+
+    <div id ="left-panel">
+        <h2>Ship Pool</h2>
+        <div id ="ship-pool">
+        </div>
+        <div id ="controls">
+            <button id ="save-button">Save Placement</button>
+            <button id ="start-button" disabled>Start Game</button>
+        </div>
+    </div>
+
+    <!-- Player 1 Board -->
+    <div class = "board-wrapper">
+        <h2>Player 1 Board</h2>
+        <div id ="player1-board" class ="board"></div>
+    </div>
+
+    <!-- Player 2 Board -->
+    <div class ="board-wrapper">
+        <h2>Player 2 Board</h2>
+        <div id ="player2-board" class ="board"></div>
+    </div>
+
+</div>
+
+<!-- VO -->
+<div id ="vc-feedback" aria-live="polite">Voice instructions will appear here.</div>
+
+<script src ="script.js"></script>
+</body>
+</html>
