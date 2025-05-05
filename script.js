@@ -115,6 +115,15 @@ function handleDrop(e) {
     const colLabel = String.fromCharCode(65 + column);
     const rowLabel = row + 1;
     speak(`Placed ship of length ${length} at column ${colLabel}, row ${rowLabel}.`);
+
+    //track the ship
+    const player = cell.parentElement.id === 'player1-board' ? 'player1' : 'player2';
+
+    playerShips[player].push({
+        row,
+        col: column,
+        length
+    });
 }
 
 // initialize
@@ -123,6 +132,33 @@ window.addEventListener('DOMContentLoaded', () => {
     createBoard('player2-board');
     createShips();
     speak('Welcome! Drag your ships onto Player 1 board to begin.');
+});
+
+//store placed ships into this
+const playerShips = {
+    player1: [],
+    player2: []
+};
+
+//updated the save button and locks the placment of the ships and moves onto player 2
+let currentPlayer = 'player1';
+document.getElementById('save-button').addEventListener('click', () => {
+    if (currentPlayer === 'player1') {
+        // Lock Player 1 Board
+        document.querySelectorAll('#player1-board .cell').forEach(cell => {
+            cell.removeEventListener('drop', handleDrop);
+        });
+        speak('Player 1 saved. Now Player 2, place your ships.');
+        createShips(); // Refresh ship pool
+        currentPlayer = 'player2';
+    } else if (currentPlayer === 'player2') {
+        // Lock Player 2 Board
+        document.querySelectorAll('#player2-board .cell').forEach(cell => {
+            cell.removeEventListener('drop', handleDrop);
+        });
+        speak('Player 2 saved. You may now start the game.');
+        document.getElementById('start-button').disabled = false;
+    }
 });
 
 //next steps:
