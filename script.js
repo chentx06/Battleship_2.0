@@ -124,6 +124,34 @@ function handleDrop(e) {
         col: column,
         length
     });
+
+    //[revent placing more than 5 ships
+    if (placedShipsCount[player] >= 5) {
+        speak("You've already placed 5 ships.");
+        return;
+    }
+    placedShipsCount[player]++;
+
+    playerShips[player].push({
+        row,
+        col: column,
+        length
+    });
+
+    if (placedShipsCount[player] === 5) {
+        document.getElementById('save-button').disabled = false;
+        speak("All ships placed. You can now save your placement.");
+    }
+
+    if (currentPlayer === 'player1') {
+        //lock player 1, reset for player 2
+        document.getElementById('save-button').disabled = true;
+        placedShipsCount.player2 = 0;
+        
+    } else if (currentPlayer === 'player2') {
+        // done placing
+        document.getElementById('save-button').disabled = true;
+    }
 }
 
 // initialize
@@ -160,6 +188,14 @@ document.getElementById('save-button').addEventListener('click', () => {
         document.getElementById('start-button').disabled = false;
     }
 });
+
+//track placed ships
+let placedShipsCount = {
+    player1: 0,
+    player2: 0
+};
+
+
 
 //next steps:
 //add flipping
