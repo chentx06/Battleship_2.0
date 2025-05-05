@@ -207,6 +207,74 @@ let placedShipsCount = {
 };
 
 
+let currentTurn = 'player1';
+let gameStarted = false;
+
+document.getElementById('start-button').addEventListener('click', () => {
+    speak('Game started. Player 1, make your move.');
+    gameStarted = true;
+
+    // Add click listeners to Player 2's board for attacks
+    document.querySelectorAll('#player2-board .cell').forEach(cell => {
+        cell.addEventListener('click', handleAttack);
+    });
+
+    document.getElementById('start-button').disabled = true;
+});
+
+function handleAttack(e) {
+    if (!gameStarted) return;
+
+    const cell = e.target;
+    const boardId = cell.parentElement.id;
+
+    // Prevent attacking own board
+    if (currentTurn === 'player1' && boardId !== 'player2-board') return;
+    if (currentTurn === 'player2' && boardId !== 'player1-board') return;
+
+    // Already attacked
+    if (cell.classList.contains('hit') || cell.classList.contains('miss')) {
+        speak('Already targeted. Choose another cell.');
+        return;
+    }
+
+    // Check for hit or miss
+    if (cell.classList.contains('ship')) {
+        cell.classList.add('hit');    // Mark as hit (orange)
+        cell.style.backgroundColor = 'orange';  // Change to orange for hit
+
+        speak(`Hit!`);
+
+    } else {
+        cell.classList.add('miss');    // Mark as miss (grey)
+        cell.style.backgroundColor = 'grey';  // Change to grey for miss
+
+        speak(`Miss. Switching to ${currentTurn === 'player1' ? 'Player 2' : 'Player 1'}.`);
+    }
+
+    // Switch turns
+    currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
+
+    // Update attackable board
+    updateAttackBoard();
+}
+
+function updateAttackBoard() {
+    // Remove previous listeners from all cells
+    document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
+        cell.removeEventListener('click', handleAttack);
+    });
+
+    // Add event listeners to the opponent's board
+    const opponentBoardId = currentTurn === 'player1' ? 'player2-board' : 'player1-board';
+    document.querySelectorAll(`#${opponentBoardId} .cell`).forEach(cell => {
+        cell.addEventListener('click', handleAttack);
+    });
+
+    // Provide feedback about whose turn it is
+    speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'}, it’s your turn.`);
+}
+
 
 //next steps:
 //add flipping
