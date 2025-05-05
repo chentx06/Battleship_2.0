@@ -140,11 +140,30 @@ function handleDrop(e) {
     }
 }
 
+//function that doesnt allow player 1 to drag ships onto player 2 board
+function makeBoardDroppable(player) {
+    const boardId = player === 'player1' ? 'player1-board' : 'player2-board';
+    const otherBoardId = player === 'player1' ? 'player2-board' : 'player1-board';
+
+    // Enable drop on current player's board
+    document.querySelectorAll(`#${boardId} .cell`).forEach(cell => {
+        cell.addEventListener('dragover', e => e.preventDefault());
+        cell.addEventListener('drop', handleDrop);
+    });
+
+    // Disable drop on other player's board
+    document.querySelectorAll(`#${otherBoardId} .cell`).forEach(cell => {
+        cell.removeEventListener('dragover', e => e.preventDefault());
+        cell.removeEventListener('drop', handleDrop);
+    });
+}
+
 // initialize
 window.addEventListener('DOMContentLoaded', () => {
     createBoard('player1-board');
     createBoard('player2-board');
     createShips();
+    makeBoardDroppable(currentPlayer); // Enable only Player 1 board
     speak('Welcome! Drag your ships onto Player 1 board to begin.');
 });
 
@@ -162,15 +181,18 @@ document.getElementById('save-button').addEventListener('click', () => {
         // Lock Player 1 Board
         document.querySelectorAll('#player1-board .cell').forEach(cell => {
             cell.removeEventListener('drop', handleDrop);
+            cell.removeEventListener('dragover', e => e.preventDefault());
         });
         speak('Player 1 saved. Now Player 2, place your ships.');
         createShips(); // Refresh ship pool
         currentPlayer = 'player2';
+        makeBoardDroppable(currentPlayer);
         document.getElementById('save-button').disabled = true;
     } else if (currentPlayer === 'player2') {
         // Lock Player 2 Board
         document.querySelectorAll('#player2-board .cell').forEach(cell => {
             cell.removeEventListener('drop', handleDrop);
+            cell.removeEventListener('dragover', e => e.preventDefault());
         });
         speak('Player 2 saved. You may now start the game.');
         document.getElementById('start-button').disabled = false;
