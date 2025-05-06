@@ -6,6 +6,39 @@ function speak(msg) {
     window.speechSynthesis.speak(u);
 }
 
+//rotation
+let currentOrientation = 'horizontal'; // default
+
+document.getElementById('rotate-button').addEventListener('click', () => {
+    currentOrientation = currentOrientation === 'horizontal' ? 'vertical' : 'horizontal';
+    speak(`Orientation set to ${currentOrientation}`);
+});
+
+function placeShip(startCell, shipLength) {
+    const board = startCell.parentElement;
+    const startRow = parseInt(startCell.dataset.row);
+    const startCol = parseInt(startCell.dataset.col);
+
+    const cellsToPlace = [];
+
+    // Adjust placement based on orientation
+    for (let i = 0; i < shipLength; i++) {
+        const row = currentOrientation === 'horizontal' ? startRow : startRow + i;
+        const col = currentOrientation === 'horizontal' ? startCol + i : startCol;
+
+        const cell = board.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+        if (!cell || cell.classList.contains('ship')) {
+            speak("Invalid placement");
+            return false; // Invalid placement
+        }
+        cellsToPlace.push(cell);
+    }
+
+    // Place the ship on the grid
+    cellsToPlace.forEach(cell => cell.classList.add('ship'));
+    return true;
+}
+
 //10×10 board with labels (columns A-J, rows 1-10)
 function createBoard(boardId) {
     const board = document.getElementById(boardId);
@@ -81,35 +114,69 @@ function handleDrop(e) {
     const cell = e.target;
     // ignore drops on label cells
     if (!cell.classList.contains('cell')) return;
+    
     const length = +draggedShip.dataset.length;
     const row = +cell.dataset.row;
     const column = +cell.dataset.column;
 
-    // simple horizontal placement
-    if (column + length > 10) {
-        speak('Out of bounds, try another cell.');
+    // // simple horizontal placement
+    // if (column + length > 10) {
+    //     speak('Out of bounds, try another cell.');
+    //     return;
+    // }
+
+    // // check overlap
+    // const boardId = cell.parentElement.id;
+    // for (let i = 0; i < length; i++) {
+    //     const check = document.querySelector(
+    //         `#${boardId} .cell[data-row="${row}"][data-column="${column + i}"]`
+    //     );
+    //     if (check.classList.contains('ship')) {
+    //         speak('Overlap detected, try again.');
+    //         return;
+    //     }
+    // }
+
+    // // put ship
+    // for (let i = 0; i < length; i++) {
+    //     const placeCell = document.querySelector(
+    //         `#${boardId} .cell[data-row="${row}"][data-column="${column + i}"]`
+    //     );
+    //     placeCell.classList.add('ship');
+    // }
+
+    const boardId = cell.parentElement.id;
+
+// Check bounds based on orientation
+if ((currentOrientation === 'horizontal' && column + length > 10) ||
+    (currentOrientation === 'vertical' && row + length > 10)) {
+    speak('Out of bounds, try another cell.');
+    return;
+}
+
+// Check overlap
+for (let i = 0; i < length; i++) {
+    const checkRow = currentOrientation === 'horizontal' ? row : row + i;
+    const checkCol = currentOrientation === 'horizontal' ? column + i : column;
+    const check = document.querySelector(
+        `#${boardId} .cell[data-row="${checkRow}"][data-column="${checkCol}"]`
+    );
+    if (check.classList.contains('ship')) {
+        speak('Overlap detected, try again.');
         return;
     }
+}
 
-    // check overlap
-    const boardId = cell.parentElement.id;
-    for (let i = 0; i < length; i++) {
-        const check = document.querySelector(
-            `#${boardId} .cell[data-row="${row}"][data-column="${column + i}"]`
-        );
-        if (check.classList.contains('ship')) {
-            speak('Overlap detected, try again.');
-            return;
-        }
-    }
+// Place ship
+for (let i = 0; i < length; i++) {
+    const placeRow = currentOrientation === 'horizontal' ? row : row + i;
+    const placeCol = currentOrientation === 'horizontal' ? column + i : column;
+    const placeCell = document.querySelector(
+        `#${boardId} .cell[data-row="${placeRow}"][data-column="${placeCol}"]`
+    );
+    placeCell.classList.add('ship');
+}
 
-    // put ship
-    for (let i = 0; i < length; i++) {
-        const placeCell = document.querySelector(
-            `#${boardId} .cell[data-row="${row}"][data-column="${column + i}"]`
-        );
-        placeCell.classList.add('ship');
-    }
     //removing from pool
     draggedShip.remove();
     const colLabel = String.fromCharCode(65 + column);
@@ -321,5 +388,4 @@ function updateAttackBoard() {
 
 
 //next steps:
-//add flipping
 //modify drag and drop more so it's more accurate
