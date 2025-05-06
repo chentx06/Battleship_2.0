@@ -222,6 +222,13 @@ document.getElementById('start-button').addEventListener('click', () => {
     document.getElementById('start-button').disabled = true;
 });
 
+//track how many ships hit
+const totalShipParts = 17;
+let hitCounts = {
+    player1: 0,
+    player2: 0
+};
+
 function handleAttack(e) {
     if (!gameStarted) return;
 
@@ -242,8 +249,25 @@ function handleAttack(e) {
     if (cell.classList.contains('ship')) {
         cell.classList.add('hit');    // Mark as hit (orange)
         cell.style.backgroundColor = 'orange';  // Change to orange for hit
-
+    
         speak(`Hit!`);
+    
+        // Update hit count
+        const opponent = currentTurn === 'player1' ? 'player2' : 'player1';
+        hitCounts[opponent]++;
+    
+        // Check for win
+        if (hitCounts[opponent] === totalShipParts) {
+            speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'} wins the game!`);
+            gameStarted = false;
+    
+            // Disable further attacks
+            document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
+                cell.removeEventListener('click', handleAttack);
+            });
+    
+            return; // Exit function early
+        }
 
     } else {
         cell.classList.add('miss');    // Mark as miss (grey)
