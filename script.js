@@ -126,10 +126,13 @@ function handleDrop(e) {
     }
 
     // track ship
+    const cells = [];
+    for (let i = 0; i < length; i++) {
+        cells.push({ row, col: column + i, hit: false });
+    }
     playerShips[player].push({
-        row,
-        col: column,
-        length
+        length,
+        cells
     });
 
     placedShipsCount[player]++;
@@ -249,23 +252,40 @@ function handleAttack(e) {
     if (cell.classList.contains('ship')) {
         cell.classList.add('hit');    // Mark as hit (orange)
         cell.style.backgroundColor = 'orange';  // Change to orange for hit
-    
+
         speak(`Hit!`);
-    
+
         // Update hit count
         const opponent = currentTurn === 'player1' ? 'player2' : 'player1';
+        const row = +cell.dataset.row;
+        const col = +cell.dataset.column;
+
+        for (const ship of playerShips[opponent]) {
+            for (const part of ship.cells) {
+                if (part.row === row && part.col === col) {
+                    part.hit = true;
+                }
+            }
+
+            const isSunk = ship.cells.every(part => part.hit);
+            if (isSunk && !ship.sunk) {
+                ship.sunk = true;
+                speak(`You sunk a ship of length ${ship.length}!`);
+            }
+        }
+
         hitCounts[opponent]++;
-    
+
         // Check for win
         if (hitCounts[opponent] === totalShipParts) {
             speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'} wins the game!`);
             gameStarted = false;
-    
+
             // Disable further attacks
             document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
                 cell.removeEventListener('click', handleAttack);
             });
-    
+
             return; // Exit function early
         }
 
