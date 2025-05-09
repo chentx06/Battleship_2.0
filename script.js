@@ -198,12 +198,35 @@ const playerShips = {
 
 let currentPlayer = 'player1';
 
+// document.getElementById('save-button').addEventListener('click', () => {
+//     if (currentPlayer === 'player1') {
+//         document.querySelectorAll('#player1-board .cell').forEach(cell => {
+//             cell.removeEventListener('drop', handleDrop);
+//             cell.removeEventListener('dragover', e => e.preventDefault());
+//         });
+//         speak('Player 1 saved. Now Player 2, place your ships.');
+//         createShips();
+//         currentPlayer = 'player2';
+//         makeBoardDroppable(currentPlayer);
+//         document.getElementById('save-button').disabled = true;
+//     } else if (currentPlayer === 'player2') {
+//         document.querySelectorAll('#player2-board .cell').forEach(cell => {
+//             cell.removeEventListener('drop', handleDrop);
+//             cell.removeEventListener('dragover', e => e.preventDefault());
+//         });
+//         speak('Player 2 saved. You may now start the game.');
+//         document.getElementById('start-button').disabled = false;
+//         document.getElementById('save-button').disabled = true;
+//     }
+// });
+
 document.getElementById('save-button').addEventListener('click', () => {
     if (currentPlayer === 'player1') {
         document.querySelectorAll('#player1-board .cell').forEach(cell => {
             cell.removeEventListener('drop', handleDrop);
             cell.removeEventListener('dragover', e => e.preventDefault());
         });
+        grayOutBoard('player1-board'); // ⬅️ Add this
         speak('Player 1 saved. Now Player 2, place your ships.');
         createShips();
         currentPlayer = 'player2';
@@ -214,6 +237,7 @@ document.getElementById('save-button').addEventListener('click', () => {
             cell.removeEventListener('drop', handleDrop);
             cell.removeEventListener('dragover', e => e.preventDefault());
         });
+        grayOutBoard('player2-board'); // ⬅️ Add this
         speak('Player 2 saved. You may now start the game.');
         document.getElementById('start-button').disabled = false;
         document.getElementById('save-button').disabled = true;
@@ -229,14 +253,30 @@ let placedShipsCount = {
 let currentTurn = 'player1';
 let gameStarted = false;
 
+// document.getElementById('start-button').addEventListener('click', () => {
+//     speak('Game started. Player 1, make your move.');
+//     gameStarted = true;
+
+//     document.querySelectorAll('#player2-board .cell').forEach(cell => {
+//         cell.addEventListener('click', handleAttack);
+//     });
+
+//     document.getElementById('start-button').disabled = true;
+// });
+
 document.getElementById('start-button').addEventListener('click', () => {
     speak('Game started. Player 1, make your move.');
     gameStarted = true;
 
-    document.querySelectorAll('#player2-board .cell').forEach(cell => {
-        cell.addEventListener('click', handleAttack);
-    });
+    // Gray out both boards initially
+    grayOutBoard('player1-board');
+    grayOutBoard('player2-board');
 
+    // Remove grayed-out from opponent board (Player 2's board in this case)
+    document.getElementById('player2-board').classList.remove('grayed-out');
+    
+    // Set up initial attack board
+    updateAttackBoard();
     document.getElementById('start-button').disabled = true;
 });
 
@@ -246,90 +286,177 @@ let hitCounts = {
     player2: 0
 };
 
+// function handleAttack(e) {
+//     if (!gameStarted) return;
+
+//     const cell = e.target;
+//     const boardId = cell.parentElement.id;
+
+//     if (currentTurn === 'player1' && boardId !== 'player2-board') return;
+//     if (currentTurn === 'player2' && boardId !== 'player1-board') return;
+
+//     if (cell.classList.contains('hit') || cell.classList.contains('miss')) {
+//         speak('Already targeted. Choose another cell.');
+//         return;
+//     }
+
+//     const hitSound = document.getElementById('hit-sound');
+//     const missSound = document.getElementById('miss-sound');
+//     const sinkSound = document.getElementById('sink-sound');
+//     const victorySound = document.getElementById('victory-sound');
+
+//     if (cell.classList.contains('ship')) {
+//         cell.classList.add('hit');
+//         cell.style.backgroundColor = 'orange';
+
+//         hitSound.currentTime = 0;
+//         hitSound.play();
+//         speak("Hit!");
+
+//         const opponent = currentTurn === 'player1' ? 'player2' : 'player1';
+//         const row = +cell.dataset.row;
+//         const col = +cell.dataset.column;
+
+//         for (const ship of playerShips[opponent]) {
+//             for (const part of ship.cells) {
+//                 if (part.row === row && part.col === col) {
+//                     part.hit = true;
+//                 }
+//             }
+
+//             const isSunk = ship.cells.every(part => part.hit);
+//             if (isSunk && !ship.sunk) {
+//                 ship.sunk = true;
+//                 sinkSound.currentTime = 0;
+//                 sinkSound.play();
+//                 speak(`You sunk a ship of length ${ship.length}!`);
+//             }
+//         }
+
+//         hitCounts[opponent]++;
+
+//         if (hitCounts[opponent] === totalShipParts) {
+//             victorySound.currentTime = 0;
+//             victorySound.play();
+//             speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'} wins the game!`);
+//             gameStarted = false;
+
+//             document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
+//                 cell.removeEventListener('click', handleAttack);
+//             });
+
+//             return;
+//         }
+//     } else {
+//         cell.classList.add('miss');
+//         cell.style.backgroundColor = 'grey';
+
+//         missSound.currentTime = 0;
+//         missSound.play();
+//         speak(`Miss. Switching to ${currentTurn === 'player1' ? 'Player 2' : 'Player 1'}.`);
+//     }
+
+//     currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
+
+//     updateAttackBoard();
+// }
+
+// function updateAttackBoard() {
+//     document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
+//         cell.removeEventListener('click', handleAttack);
+//     });
+
+//     const opponentBoardId = currentTurn === 'player1' ? 'player2-board' : 'player1-board';
+//     document.querySelectorAll(`#${opponentBoardId} .cell`).forEach(cell => {
+//         cell.addEventListener('click', handleAttack);
+//     });
+
+//     speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'}, it’s your turn.`);
+// }
+
+// Replace your handleAttack function with this:
 function handleAttack(e) {
     if (!gameStarted) return;
 
     const cell = e.target;
     const boardId = cell.parentElement.id;
 
-    if (currentTurn === 'player1' && boardId !== 'player2-board') return;
-    if (currentTurn === 'player2' && boardId !== 'player1-board') return;
+    if ((currentTurn === 'player1' && boardId !== 'player2-board') ||
+        (currentTurn === 'player2' && boardId !== 'player1-board')) {
+        speak("It's not your turn or wrong board.");
+        return;
+    }
 
     if (cell.classList.contains('hit') || cell.classList.contains('miss')) {
         speak('Already targeted. Choose another cell.');
         return;
     }
 
-    const hitSound = document.getElementById('hit-sound');
-    const missSound = document.getElementById('miss-sound');
-    const sinkSound = document.getElementById('sink-sound');
-    const victorySound = document.getElementById('victory-sound');
+    const isHit = cell.classList.contains('ship');
 
-    if (cell.classList.contains('ship')) {
+    if (isHit) {
         cell.classList.add('hit');
-        cell.style.backgroundColor = 'orange';
-
-        hitSound.currentTime = 0;
-        hitSound.play();
-        speak("Hit!");
-
-        const opponent = currentTurn === 'player1' ? 'player2' : 'player1';
-        const row = +cell.dataset.row;
-        const col = +cell.dataset.column;
-
-        for (const ship of playerShips[opponent]) {
-            for (const part of ship.cells) {
-                if (part.row === row && part.col === col) {
-                    part.hit = true;
-                }
-            }
-
-            const isSunk = ship.cells.every(part => part.hit);
-            if (isSunk && !ship.sunk) {
-                ship.sunk = true;
-                sinkSound.currentTime = 0;
-                sinkSound.play();
-                speak(`You sunk a ship of length ${ship.length}!`);
-            }
-        }
-
-        hitCounts[opponent]++;
-
-        if (hitCounts[opponent] === totalShipParts) {
-            victorySound.currentTime = 0;
-            victorySound.play();
-            speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'} wins the game!`);
+        cell.style.backgroundColor = '#ff6b6b'; // Red for hit
+        cell.style.backgroundImage = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ffffff\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg>")';
+        speak('Hit!');
+        hitCounts[currentTurn]++;
+        
+        if (hitCounts[currentTurn] >= totalShipParts) {
+            speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'} wins!`);
             gameStarted = false;
-
-            document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
-                cell.removeEventListener('click', handleAttack);
-            });
-
             return;
         }
     } else {
         cell.classList.add('miss');
-        cell.style.backgroundColor = 'grey';
-
-        missSound.currentTime = 0;
-        missSound.play();
-        speak(`Miss. Switching to ${currentTurn === 'player1' ? 'Player 2' : 'Player 1'}.`);
+        cell.style.backgroundColor = '#dee2e6'; // Light gray for miss
+        cell.style.backgroundImage = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%236c757d\'><circle cx=\'12\' cy=\'12\' r=\'4\'/></svg>")';
+        speak('Miss.');
     }
 
+    // Switch turns
     currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
-
     updateAttackBoard();
 }
 
+// Replace your updateAttackBoard function with this:
 function updateAttackBoard() {
+    // Remove all attack listeners first
     document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
         cell.removeEventListener('click', handleAttack);
     });
 
+    // Add listeners to the correct board
     const opponentBoardId = currentTurn === 'player1' ? 'player2-board' : 'player1-board';
     document.querySelectorAll(`#${opponentBoardId} .cell`).forEach(cell => {
         cell.addEventListener('click', handleAttack);
     });
 
-    speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'}, it’s your turn.`);
+    speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'}, it's your turn.`);
+}
+
+// Modify your start button event listener to this:
+document.getElementById('start-button').addEventListener('click', () => {
+    speak('Game started. Player 1, make your move.');
+    gameStarted = true;
+
+    // Gray out both boards initially
+    grayOutBoard('player1-board');
+    grayOutBoard('player2-board');
+
+    // Set up initial attack board
+    updateAttackBoard();
+    document.getElementById('start-button').disabled = true;
+});
+
+function grayOutBoard(boardId) {
+    const board = document.getElementById(boardId);
+    board.classList.add('grayed-out'); // Add grayed-out class
+    
+    document.querySelectorAll(`#${boardId} .cell`).forEach(cell => {
+        cell.style.backgroundColor = '#ccc';
+        cell.style.borderColor = '#999'; // Consistent border color
+        if (cell.classList.contains('ship')) {
+            cell.style.borderColor = '#999'; // Match other cells
+        }
+    });
 }

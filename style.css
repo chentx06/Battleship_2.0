@@ -123,7 +123,7 @@ button:disabled {
     background-color: #f0f0f0;
 }
 
-.cell.hit {
+/* .cell.hit {
     background-color: #ff6b6b;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffffff"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>');
     background-repeat: no-repeat;
@@ -135,6 +135,28 @@ button:disabled {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236c757d"><circle cx="12" cy="12" r="4"/></svg>');
     background-repeat: no-repeat;
     background-position: center;
+} */
+
+.cell.hit {
+    background-color: #ff6b6b !important;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffffff"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>') !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    border-color: #ff6b6b !important;
+}
+
+.cell.miss {
+    background-color: #dee2e6 !important;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236c757d"><circle cx="12" cy="12" r="4"/></svg>') !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    border-color: #dee2e6 !important;
+}
+
+/* Add this to ensure ships are properly hidden */
+.board-wrapper.grayed-out .cell.ship {
+    background-color: #ccc !important;
+    border-color: #999 !important;
 }
 
 .cell.ship {
