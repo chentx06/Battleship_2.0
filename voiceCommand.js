@@ -1,5 +1,3 @@
-
-
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!SpeechRecognition) {
     alert("Speech Recognition is not supported in this browser.");
@@ -299,12 +297,16 @@ if (!SpeechRecognition) {
         const sinkSound = document.getElementById('sink-sound');
         const victorySound = document.getElementById('victory-sound');
 
+        let hitCausedSinking = false;
+        let sunkShipLength = null;
+        let isHit = false;
+
         if (cell.classList.contains('ship')) {
+            isHit = true;
             cell.classList.add('hit');
             cell.style.backgroundColor = 'orange';
-            speak("Hit!");
 
-            let hitCausedSinking = false;
+            // Update ship status and check for sinking
             for (const ship of playerShips[opponent]) {
                 for (const part of ship.cells) {
                     if (part.row === coords.row && part.col === coords.col) {
@@ -317,6 +319,7 @@ if (!SpeechRecognition) {
                 if (isSunk && !ship.sunk) {
                     ship.sunk = true;
                     hitCausedSinking = true;
+                    sunkShipLength = ship.length;
                 }
             }
 
@@ -328,27 +331,25 @@ if (!SpeechRecognition) {
                 return;
             }
 
-            if (gameStarted) {
-                hitSound.currentTime = 0;
-                hitSound.play();
-                speak("Hit!");
+            hitSound.currentTime = 0;
+            hitSound.play();
 
-                if (hitCausedSinking) {
-                    sinkSound.currentTime = 0;
-                    sinkSound.play();
-                    speak(`You sunk a ${ship.length}-unit ship!`);
-                }
+            if (hitCausedSinking) {
+                speak(`Hit! You sunk a ${sunkShipLength}-unit ship!`);
+                sinkSound.currentTime = 0;
+                sinkSound.play();
+            } else {
+                speak("Hit!");
             }
         } else {
-            if (gameStarted) {
-                cell.classList.add('miss');
-                cell.style.backgroundColor = 'grey';
-                missSound.currentTime = 0;
-                speak("Miss.");
-                missSound.play();
-            }
+            cell.classList.add('miss');
+            cell.style.backgroundColor = 'grey';
+            missSound.currentTime = 0;
+            missSound.play();
+            speak("Miss.");
         }
 
+        // Switch turns only if game is still ongoing and it wasn't a winning move
         if (gameStarted) {
             currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
             updateTurnIndicator();
