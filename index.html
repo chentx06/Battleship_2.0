@@ -2,43 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name ="viewport" content ="width = device-width, initial-scale = 1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Accessible Battleship</title>
-    <link rel ="stylesheet" href ="style.css" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* inline for title */
+        h1.battleship-title {
+            font-size: 72px;
+            color: #023e8a;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+    </style>
 </head>
 <body>
-<h1>Battleship</h1>
+<h1 class="battleship-title">BATTLESHIP</h1>
 
-<div id ="game-container">
+<div id="game-container">
 
-    <div id ="left-panel">
+    <div id="left-panel">
         <h2>Ship Pool</h2>
-        <div id ="ship-pool">
+        <div id="ship-pool">
         </div>
-        <div id ="controls">
+        <div id="controls">
             <button id="save-button" disabled>Save Placement</button>
-            <button id ="start-button" disabled>Start Game</button>
+            <button id="start-button" disabled>Start Game</button>
             <button id="rotate-button">Rotate Ship</button>
         </div>
     </div>
 
-    <!-- Player 1 Board -->
-    <div class = "board-wrapper">
+    <!-- p2-->
+    <div class="board-wrapper">
         <h2>Player 1 Board</h2>
-        <div id ="player1-board" class ="board"></div>
+        <div id="player1-board" class="board"></div>
     </div>
 
-    <!-- Player 2 Board -->
-    <div class ="board-wrapper">
+    <!-- p1-->
+    <div class="board-wrapper">
         <h2>Player 2 Board</h2>
-        <div id ="player2-board" class ="board"></div>
+        <div id="player2-board" class="board"></div>
     </div>
 
 </div>
 
-<!-- VO -->
-<div id ="vc-feedback" aria-live="polite">Voice instructions will appear here.</div>
+<!-- VC & Sounds -->
+<div id="vc-feedback" aria-live="polite">Welcome to the game of battleship!</div>
 
-<script src ="script.js"></script>
+<script src="voiceCommand.js"></script>
+<script src="script.js"></script>
+
+<audio id="hit-sound" src="hit.mp3" preload="auto"></audio>
+<audio id="miss-sound" src="miss.mp3" preload="auto"></audio>
+<audio id="sink-sound" src="sink.mp3" preload="auto"></audio>
+<audio id="victory-sound" src="victory.mp3" preload="auto"></audio>
+
 </body>
 </html>
