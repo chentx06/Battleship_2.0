@@ -1,4 +1,3 @@
-//Speak & display
 function speak(msg) {
     document.getElementById('vc-feedback').textContent = msg;
     const u = new SpeechSynthesisUtterance(msg);
@@ -6,8 +5,7 @@ function speak(msg) {
     window.speechSynthesis.speak(u);
 }
 
-//rotation
-let currentOrientation = 'horizontal'; // default
+let currentOrientation = 'horizontal';
 
 document.getElementById('rotate-button').addEventListener('click', () => {
     currentOrientation = currentOrientation === 'horizontal' ? 'vertical' : 'horizontal';
@@ -21,7 +19,6 @@ function placeShip(startCell, shipLength) {
 
     const cellsToPlace = [];
 
-    // Adjust placement based on orientation
     for (let i = 0; i < shipLength; i++) {
         const row = currentOrientation === 'horizontal' ? startRow : startRow + i;
         const col = currentOrientation === 'horizontal' ? startCol + i : startCol;
@@ -29,32 +26,26 @@ function placeShip(startCell, shipLength) {
         const cell = board.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
         if (!cell || cell.classList.contains('ship')) {
             speak("Invalid placement");
-            return false; // Invalid placement
+            return false;
         }
         cellsToPlace.push(cell);
     }
 
-    // Place the ship on the grid
     cellsToPlace.forEach(cell => cell.classList.add('ship'));
     return true;
 }
 
-//10×10 board with labels (columns A-J, rows 1-10)
 function createBoard(boardId) {
     const board = document.getElementById(boardId);
-    // clear if recreating
     board.innerHTML = '';
-    // Adjust grid to 11×11 for labels
     board.style.display = 'grid';
     board.style.gridTemplateColumns = '40px repeat(10, 40px)';
     board.style.gridTemplateRows = '40px repeat(10, 40px)';
 
-    // top-left empty cell
     const empty = document.createElement('div');
     empty.classList.add('label');
     board.appendChild(empty);
 
-    // column headers A-J
     for (let c = 0; c < 10; c++) {
         const header = document.createElement('div');
         header.classList.add('label');
@@ -62,20 +53,16 @@ function createBoard(boardId) {
         board.appendChild(header);
     }
 
-    // rows 1-10
     for (let r = 0; r < 10; r++) {
-        // row header
         const rowLabel = document.createElement('div');
         rowLabel.classList.add('label');
         rowLabel.textContent = r + 1;
         board.appendChild(rowLabel);
-        // row cells
         for (let c = 0; c < 10; c++) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             cell.dataset.row = r;
             cell.dataset.column = c;
-            // allow drop
             cell.addEventListener('dragover', e => e.preventDefault());
             cell.addEventListener('drop', handleDrop);
             board.appendChild(cell);
@@ -83,9 +70,8 @@ function createBoard(boardId) {
     }
 }
 
-//put ships in pool
 function createShips() {
-    const lengths = [5, 4, 3, 3, 2];
+    const lengths = [2,3,3,4,5];
     const pool = document.getElementById('ship-pool');
     pool.innerHTML = '';
     lengths.forEach((len, idx) => {
@@ -94,7 +80,6 @@ function createShips() {
         ship.classList.add('ship');
         ship.draggable = true;
         ship.dataset.length = len;
-        // visual length is 40*length + gaps
         ship.style.width = `${40 * len + (len - 1) * 2}px`;
         ship.style.height = '40px';
         ship.textContent = `${len}`.padStart(2, ' ');
@@ -103,7 +88,6 @@ function createShips() {
     });
 }
 
-//drag & drop
 let draggedShip = null;
 function handleDragStart(e) {
     draggedShip = e.target;
@@ -112,87 +96,54 @@ function handleDragStart(e) {
 function handleDrop(e) {
     e.preventDefault();
     const cell = e.target;
-    // ignore drops on label cells
     if (!cell.classList.contains('cell')) return;
-    
+
     const length = +draggedShip.dataset.length;
     const row = +cell.dataset.row;
     const column = +cell.dataset.column;
 
-    // // simple horizontal placement
-    // if (column + length > 10) {
-    //     speak('Out of bounds, try another cell.');
-    //     return;
-    // }
-
-    // // check overlap
-    // const boardId = cell.parentElement.id;
-    // for (let i = 0; i < length; i++) {
-    //     const check = document.querySelector(
-    //         `#${boardId} .cell[data-row="${row}"][data-column="${column + i}"]`
-    //     );
-    //     if (check.classList.contains('ship')) {
-    //         speak('Overlap detected, try again.');
-    //         return;
-    //     }
-    // }
-
-    // // put ship
-    // for (let i = 0; i < length; i++) {
-    //     const placeCell = document.querySelector(
-    //         `#${boardId} .cell[data-row="${row}"][data-column="${column + i}"]`
-    //     );
-    //     placeCell.classList.add('ship');
-    // }
 
     const boardId = cell.parentElement.id;
 
-// Check bounds based on orientation
-if ((currentOrientation === 'horizontal' && column + length > 10) ||
-    (currentOrientation === 'vertical' && row + length > 10)) {
-    speak('Out of bounds, try another cell.');
-    return;
-}
-
-// Check overlap
-for (let i = 0; i < length; i++) {
-    const checkRow = currentOrientation === 'horizontal' ? row : row + i;
-    const checkCol = currentOrientation === 'horizontal' ? column + i : column;
-    const check = document.querySelector(
-        `#${boardId} .cell[data-row="${checkRow}"][data-column="${checkCol}"]`
-    );
-    if (check.classList.contains('ship')) {
-        speak('Overlap detected, try again.');
+    if ((currentOrientation === 'horizontal' && column + length > 10) ||
+        (currentOrientation === 'vertical' && row + length > 10)) {
+        speak('Out of bounds, try another cell.');
         return;
     }
-}
 
-// Place ship
-for (let i = 0; i < length; i++) {
-    const placeRow = currentOrientation === 'horizontal' ? row : row + i;
-    const placeCol = currentOrientation === 'horizontal' ? column + i : column;
-    const placeCell = document.querySelector(
-        `#${boardId} .cell[data-row="${placeRow}"][data-column="${placeCol}"]`
-    );
-    placeCell.classList.add('ship');
-}
+    for (let i = 0; i < length; i++) {
+        const checkRow = currentOrientation === 'horizontal' ? row : row + i;
+        const checkCol = currentOrientation === 'horizontal' ? column + i : column;
+        const check = document.querySelector(
+            `#${boardId} .cell[data-row="${checkRow}"][data-column="${checkCol}"]`
+        );
+        if (check.classList.contains('ship')) {
+            speak('Overlap detected, try again.');
+            return;
+        }
+    }
 
-    //removing from pool
+    for (let i = 0; i < length; i++) {
+        const placeRow = currentOrientation === 'horizontal' ? row : row + i;
+        const placeCol = currentOrientation === 'horizontal' ? column + i : column;
+        const placeCell = document.querySelector(
+            `#${boardId} .cell[data-row="${placeRow}"][data-column="${placeCol}"]`
+        );
+        placeCell.classList.add('ship');
+    }
+
     draggedShip.remove();
     const colLabel = String.fromCharCode(65 + column);
     const rowLabel = row + 1;
     speak(`Placed ship of length ${length} at column ${colLabel}, row ${rowLabel}.`);
 
-    //track the ship
     const player = cell.parentElement.id === 'player1-board' ? 'player1' : 'player2';
 
-    // prevent placing more than 5 ships
     if (placedShipsCount[player] >= 5) {
         speak("You've already placed 5 ships.");
         return;
     }
 
-    // track ship
     const cells = [];
     for (let i = 0; i < length; i++) {
         cells.push({ row, col: column + i, hit: false });
@@ -210,56 +161,55 @@ for (let i = 0; i < length; i++) {
     }
 }
 
-//function that doesnt allow player 1 to drag ships onto player 2 board
 function makeBoardDroppable(player) {
     const boardId = player === 'player1' ? 'player1-board' : 'player2-board';
     const otherBoardId = player === 'player1' ? 'player2-board' : 'player1-board';
 
-    // Enable drop on current player's board
     document.querySelectorAll(`#${boardId} .cell`).forEach(cell => {
         cell.addEventListener('dragover', e => e.preventDefault());
         cell.addEventListener('drop', handleDrop);
     });
 
-    // Disable drop on other player's board
     document.querySelectorAll(`#${otherBoardId} .cell`).forEach(cell => {
         cell.removeEventListener('dragover', e => e.preventDefault());
         cell.removeEventListener('drop', handleDrop);
     });
 }
 
-// initialize
 window.addEventListener('DOMContentLoaded', () => {
     createBoard('player1-board');
     createBoard('player2-board');
     createShips();
-    makeBoardDroppable(currentPlayer); // Enable only Player 1 board
-    speak('Welcome! Drag your ships onto Player 1 board to begin.');
+    makeBoardDroppable(currentPlayer);
+
+    const startSpeech = () => {
+        speak('Welcome to Battleship! Hold spacebar to use our immersive mode, allowing you to speak to the game. Say instructions anytime for help.');
+        window.removeEventListener('keydown', startSpeech); // Remove listener after first use
+    };
+
+    window.addEventListener('keydown', startSpeech);
 });
 
-//store placed ships into this
+
 const playerShips = {
     player1: [],
     player2: []
 };
 
-//updated the save button and locks the placment of the ships and moves onto player 2
 let currentPlayer = 'player1';
 
 document.getElementById('save-button').addEventListener('click', () => {
     if (currentPlayer === 'player1') {
-        // Lock Player 1 Board
         document.querySelectorAll('#player1-board .cell').forEach(cell => {
             cell.removeEventListener('drop', handleDrop);
             cell.removeEventListener('dragover', e => e.preventDefault());
         });
         speak('Player 1 saved. Now Player 2, place your ships.');
-        createShips(); // Refresh ship pool
+        createShips();
         currentPlayer = 'player2';
         makeBoardDroppable(currentPlayer);
         document.getElementById('save-button').disabled = true;
     } else if (currentPlayer === 'player2') {
-        // Lock Player 2 Board
         document.querySelectorAll('#player2-board .cell').forEach(cell => {
             cell.removeEventListener('drop', handleDrop);
             cell.removeEventListener('dragover', e => e.preventDefault());
@@ -270,7 +220,6 @@ document.getElementById('save-button').addEventListener('click', () => {
     }
 });
 
-//track placed ships
 let placedShipsCount = {
     player1: 0,
     player2: 0
@@ -284,7 +233,6 @@ document.getElementById('start-button').addEventListener('click', () => {
     speak('Game started. Player 1, make your move.');
     gameStarted = true;
 
-    // Add click listeners to Player 2's board for attacks
     document.querySelectorAll('#player2-board .cell').forEach(cell => {
         cell.addEventListener('click', handleAttack);
     });
@@ -292,7 +240,6 @@ document.getElementById('start-button').addEventListener('click', () => {
     document.getElementById('start-button').disabled = true;
 });
 
-//track how many ships hit
 const totalShipParts = 17;
 let hitCounts = {
     player1: 0,
@@ -305,24 +252,27 @@ function handleAttack(e) {
     const cell = e.target;
     const boardId = cell.parentElement.id;
 
-    // Prevent attacking own board
     if (currentTurn === 'player1' && boardId !== 'player2-board') return;
     if (currentTurn === 'player2' && boardId !== 'player1-board') return;
 
-    // Already attacked
     if (cell.classList.contains('hit') || cell.classList.contains('miss')) {
         speak('Already targeted. Choose another cell.');
         return;
     }
 
-    // Check for hit or miss
+    const hitSound = document.getElementById('hit-sound');
+    const missSound = document.getElementById('miss-sound');
+    const sinkSound = document.getElementById('sink-sound');
+    const victorySound = document.getElementById('victory-sound');
+
     if (cell.classList.contains('ship')) {
-        cell.classList.add('hit');    // Mark as hit (orange)
-        cell.style.backgroundColor = 'orange';  // Change to orange for hit
+        cell.classList.add('hit');
+        cell.style.backgroundColor = 'orange';
 
-        speak(`Hit!`);
+        hitSound.currentTime = 0;
+        hitSound.play();
+        speak("Hit!");
 
-        // Update hit count
         const opponent = currentTurn === 'player1' ? 'player2' : 'player1';
         const row = +cell.dataset.row;
         const col = +cell.dataset.column;
@@ -337,55 +287,49 @@ function handleAttack(e) {
             const isSunk = ship.cells.every(part => part.hit);
             if (isSunk && !ship.sunk) {
                 ship.sunk = true;
+                sinkSound.currentTime = 0;
+                sinkSound.play();
                 speak(`You sunk a ship of length ${ship.length}!`);
             }
         }
 
         hitCounts[opponent]++;
 
-        // Check for win
         if (hitCounts[opponent] === totalShipParts) {
+            victorySound.currentTime = 0;
+            victorySound.play();
             speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'} wins the game!`);
             gameStarted = false;
 
-            // Disable further attacks
             document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
                 cell.removeEventListener('click', handleAttack);
             });
 
-            return; // Exit function early
+            return;
         }
-
     } else {
-        cell.classList.add('miss');    // Mark as miss (grey)
-        cell.style.backgroundColor = 'grey';  // Change to grey for miss
+        cell.classList.add('miss');
+        cell.style.backgroundColor = 'grey';
 
+        missSound.currentTime = 0;
+        missSound.play();
         speak(`Miss. Switching to ${currentTurn === 'player1' ? 'Player 2' : 'Player 1'}.`);
     }
 
-    // Switch turns
     currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
 
-    // Update attackable board
     updateAttackBoard();
 }
 
 function updateAttackBoard() {
-    // Remove previous listeners from all cells
     document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
         cell.removeEventListener('click', handleAttack);
     });
 
-    // Add event listeners to the opponent's board
     const opponentBoardId = currentTurn === 'player1' ? 'player2-board' : 'player1-board';
     document.querySelectorAll(`#${opponentBoardId} .cell`).forEach(cell => {
         cell.addEventListener('click', handleAttack);
     });
 
-    // Provide feedback about whose turn it is
     speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'}, it’s your turn.`);
 }
-
-
-//next steps:
-//modify drag and drop more so it's more accurate
