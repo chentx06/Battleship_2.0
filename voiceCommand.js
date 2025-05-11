@@ -185,7 +185,7 @@ if (!SpeechRecognition) {
 
         const coords = parseCoordinates(transcript);
         if (!coords) {
-            speak("Say coordinates like 'A1' through 'J10'");
+            speak("Say any coordinate from 'A1' to 'J10'.");
             return;
         }
 
@@ -333,13 +333,31 @@ if (!SpeechRecognition) {
 
             hitSound.currentTime = 0;
             hitSound.play();
+            speak("Hit!");
 
             if (hitCausedSinking) {
-                speak(`Hit! You sunk a ${sunkShipLength}-unit ship!`);
-                sinkSound.currentTime = 0;
-                sinkSound.play();
-            } else {
-                speak("Hit!");
+                // Calculate remaining unsunk ships
+                const remainingShips = playerShips[opponent].filter(ship => !ship.sunk).length;
+                let remainingMessage = remainingShips > 0
+                    ? `Opponent has ${remainingShips} ship${remainingShips !== 1 ? 's' : ''} remaining.`
+                    : "All enemy ships destroyed!";
+
+                // Announce sinking after a brief delay
+                setTimeout(() => {
+                    speak(`You sunk a ${sunkShipLength}-unit ship! ${remainingMessage}`);
+                    sinkSound.currentTime = 0;
+                    sinkSound.play();
+
+                    // Then announce turn change after another brief delay
+                    setTimeout(() => {
+                        if (gameStarted) {
+                            currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
+                            updateTurnIndicator();
+                            speak(`${currentTurn}'s turn now. ${getCurrentInstruction()}`);
+                        }
+                    }, 5000);
+                }, 1000);
+                return; // Skip the turn change at the bottom since we're handling it here
             }
         } else {
             cell.classList.add('miss');
