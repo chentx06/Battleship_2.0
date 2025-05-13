@@ -189,7 +189,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const startSpeech = () => {
         speak('Welcome to Battleship! Hold spacebar to use our immersive mode, allowing you to speak to the game. Say instructions anytime for help.');
-        window.removeEventListener('keydown', startSpeech); // Remove listener after first use
+        window.removeEventListener('keydown', startSpeech); // remove listener after first use
     };
 
     window.addEventListener('keydown', startSpeech);
@@ -209,7 +209,7 @@ document.getElementById('save-button').addEventListener('click', () => {
             cell.removeEventListener('drop', handleDrop);
             cell.removeEventListener('dragover', e => e.preventDefault());
         });
-        grayOutBoard('player1-board'); // ⬅️ Add this
+        grayOutBoard('player1-board');
         speak('Player 1 saved. Now Player 2, place your ships.');
         createShips();
         currentPlayer = 'player2';
@@ -220,7 +220,7 @@ document.getElementById('save-button').addEventListener('click', () => {
             cell.removeEventListener('drop', handleDrop);
             cell.removeEventListener('dragover', e => e.preventDefault());
         });
-        grayOutBoard('player2-board'); // ⬅️ Add this
+        grayOutBoard('player2-board');
         speak('Player 2 saved. You may now start the game.');
         document.getElementById('start-button').disabled = false;
         document.getElementById('save-button').disabled = true;
@@ -240,14 +240,14 @@ document.getElementById('start-button').addEventListener('click', () => {
     speak('Game started. Player 1, make your move.');
     gameStarted = true;
 
-    //turns the boards grey in the start
+    // turns the boards grey in the start
     grayOutBoard('player1-board');
     grayOutBoard('player2-board');
 
-    //remove player 2's greyed-out board
+    // remove player 2's greyed-out board
     document.getElementById('player2-board').classList.remove('grayed-out');
     
-    //set up the attack board
+    // set up the attack board
     updateAttackBoard();
     document.getElementById('start-button').disabled = true;
 });
@@ -265,7 +265,7 @@ function handleAttack(e) {
     const boardId = cell.parentElement.id;
     const opponent = currentTurn === 'player1' ? 'player2' : 'player1';
 
-    // Validate attack
+    // validate attack
     if ((currentTurn === 'player1' && boardId !== 'player2-board') ||
         (currentTurn === 'player2' && boardId !== 'player1-board')) {
         speak("Wrong board");
@@ -278,13 +278,13 @@ function handleAttack(e) {
     }
 
     if (cell.classList.contains('ship')) {
-        // Hit processing
+        // hit processing
         cell.classList.add('hit');
         hitSound.currentTime = 0;
         hitSound.play();
         speak("Hit!");
 
-        // Update ship status
+        // update ship status
         const row = +cell.dataset.row;
         const col = +cell.dataset.column;
         let shipSunk = false;
@@ -313,25 +313,25 @@ function handleAttack(e) {
             return;
         }
     } else {
-        // Miss processing
+        // miss processing
         cell.classList.add('miss');
         missSound.currentTime = 0;
         missSound.play();
         speak("Miss.");
     }
 
-    //switch turns
+    // switch turns
     currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
     updateAttackBoard();
 }
 
 function updateAttackBoard() {
-    //removed all attack listeners
+    // removed all attack listeners
     document.querySelectorAll('#player1-board .cell, #player2-board .cell').forEach(cell => {
         cell.removeEventListener('click', handleAttack);
     });
 
-    //added listeners to the correct board
+    // added listeners to the correct board
     const opponentBoardId = currentTurn === 'player1' ? 'player2-board' : 'player1-board';
     document.querySelectorAll(`#${opponentBoardId} .cell`).forEach(cell => {
         cell.addEventListener('click', handleAttack);
@@ -344,18 +344,18 @@ document.getElementById('start-button').addEventListener('click', () => {
     speak('Game started. Player 1, make your move.');
     gameStarted = true;
 
-    //gray out the player boards
+    // gray out the player boards
     grayOutBoard('player1-board');
     grayOutBoard('player2-board');
 
-    //set up the attack board
+    // set up the attack board
     updateAttackBoard();
     document.getElementById('start-button').disabled = true;
 });
 
 function grayOutBoard(boardId) {
     const board = document.getElementById(boardId);
-    board.classList.add('grayed-out'); //add grayed-out class
+    board.classList.add('grayed-out'); // add grayed-out class
     
     document.querySelectorAll(`#${boardId} .cell`).forEach(cell => {
         cell.style.backgroundColor = '#ccc';
