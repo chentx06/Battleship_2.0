@@ -1,5 +1,3 @@
-
-
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!SpeechRecognition) {
     alert("Speech Recognition is not supported in this browser.");
