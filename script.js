@@ -1,3 +1,8 @@
+const hitSound = new Audio('hit.mp3');
+const missSound = new Audio('miss.mp3');
+const sinkSound = new Audio('sink.mp3');
+const victorySound = new Audio('victory.mp3');
+
 function speak(msg) {
     document.getElementById('vc-feedback').textContent = msg;
     const u = new SpeechSynthesisUtterance(msg);
@@ -258,37 +263,61 @@ function handleAttack(e) {
 
     const cell = e.target;
     const boardId = cell.parentElement.id;
+    const opponent = currentTurn === 'player1' ? 'player2' : 'player1';
 
+    // Validate attack
     if ((currentTurn === 'player1' && boardId !== 'player2-board') ||
         (currentTurn === 'player2' && boardId !== 'player1-board')) {
-        speak("It's not your turn or wrong board.");
+        speak("Wrong board");
         return;
     }
 
     if (cell.classList.contains('hit') || cell.classList.contains('miss')) {
-        speak('Already targeted. Choose another cell.');
+        speak('Already attacked there');
         return;
     }
 
-    const isHit = cell.classList.contains('ship');
-
-    if (isHit) {
+    if (cell.classList.contains('ship')) {
+        // Hit processing
         cell.classList.add('hit');
-        cell.style.backgroundColor = '#ff6b6b'; // Red for hit
-        cell.style.backgroundImage = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ffffff\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg>")';
-        speak('Hit!');
-        hitCounts[currentTurn]++;
-        
-        if (hitCounts[currentTurn] >= totalShipParts) {
-            speak(`${currentTurn === 'player1' ? 'Player 1' : 'Player 2'} wins!`);
+        hitSound.currentTime = 0;
+        hitSound.play();
+        speak("Hit!");
+
+        // Update ship status
+        const row = +cell.dataset.row;
+        const col = +cell.dataset.column;
+        let shipSunk = false;
+
+        for (const ship of playerShips[opponent]) {
+            for (const part of ship.cells) {
+                if (part.row === row && part.col === col) {
+                    part.hit = true;
+                    hitCounts[opponent]++;
+                }
+            }
+
+            if (ship.cells.every(part => part.hit)) {
+                shipSunk = true;
+                sinkSound.currentTime = 0;
+                sinkSound.play();
+                speak(`Sunk a ${ship.length}-unit ship!`);
+            }
+        }
+
+        if (hitCounts[opponent] === totalShipParts) {
+            victorySound.currentTime = 0;
+            victorySound.play();
+            speak(`${currentTurn} wins!`);
             gameStarted = false;
             return;
         }
     } else {
+        // Miss processing
         cell.classList.add('miss');
-        cell.style.backgroundColor = '#dee2e6'; // Light gray for miss
-        cell.style.backgroundImage = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%236c757d\'><circle cx=\'12\' cy=\'12\' r=\'4\'/></svg>")';
-        speak('Miss.');
+        missSound.currentTime = 0;
+        missSound.play();
+        speak("Miss.");
     }
 
     //switch turns
