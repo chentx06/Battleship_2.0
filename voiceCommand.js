@@ -1,16 +1,25 @@
+//js recognizing voice commands
+//browser support
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!SpeechRecognition) {
     alert("Speech Recognition is not supported in this browser.");
 } else {
+    //initialize
     const recognition = new SpeechRecognition();
+
+    //game situation
     let spacebarPressed = false;
     let lastSpokenMessage = '';
     let currentStep = 'awaitingLength';
 
+    //for ship placement
     let currentOrientation = 'horizontal';
     let currentPlayer = 'player1';
     let gameStarted = false;
     let selectedShipLength = null;
+
+    //ship lengths
+    // important! Remaining ships
     const allShipLengths = [2, 3, 3, 4, 5];
     const availableShips = {
         player1: [...allShipLengths],
@@ -18,6 +27,7 @@ if (!SpeechRecognition) {
     };
     const placedShips = { player1: [], player2: [] };
 
+    //track turn, track win
     let currentTurn = 'player1';
     const playerShips = {
         player1: [],
@@ -29,23 +39,28 @@ if (!SpeechRecognition) {
     };
     const totalShipParts = 17;
 
+    //API recognition properties
     recognition.lang = 'en-US';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     recognition.continuous = true;
 
+    // speechSynthesis placing text and reading it
+    //making sure dont repeat same msg
     function speak(message, force = false) {
         if (!force && message === lastSpokenMessage) return;
 
         lastSpokenMessage = message;
         document.getElementById('vc-feedback').textContent = message;
 
+        //new speech
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(message);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);
     }
 
+    //default message
     function startRecognition() {
         try {
             recognition.start();
@@ -56,6 +71,7 @@ if (!SpeechRecognition) {
         }
     }
 
+    //when stopped pressing spacebar
     function stopRecognition() {
         try {
             recognition.stop();
@@ -64,11 +80,13 @@ if (!SpeechRecognition) {
         }
     }
 
+    //tell the player current situation
     function getCurrentInstruction() {
         if (gameStarted) {
             return `${currentTurn}'s turn. Say a coordinate (like 'B5') or 'instructions' for help`;
         }
 
+        //if not all ships placed, continue asking for placements
         if (currentStep === 'awaitingLength') {
             const shipsLeft = getAvailableShips();
             if (shipsLeft.length === 0) {
@@ -77,6 +95,7 @@ if (!SpeechRecognition) {
             return `Select a ship size to place. Available sizes: ${shipsLeft.join(', ')}. Say 'instructions' for help`;
         }
 
+        //if alr gave length command
         if (currentStep === 'awaitingCoordinates' && selectedShipLength) {
             return `Place your ${selectedShipLength}-unit ship. Say coordinates (like 'A1') or 'rotate' to change orientation`;
         }
@@ -84,10 +103,12 @@ if (!SpeechRecognition) {
         return "Ready for commands. Say 'instructions' for help";
     }
 
+    //tell the available ships
     function getAvailableShips() {
         return [...availableShips[currentPlayer]].sort();
     }
 
+    //instructions
     function giveDetailedInstructions() {
         if (gameStarted) {
             speak(`Game instructions - YOU ARE IN THE ATTACK PHASE:
@@ -107,6 +128,7 @@ if (!SpeechRecognition) {
         }
     }
 
+    //start and stop recognition depending on spacebar
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space' && !spacebarPressed) {
             e.preventDefault();
@@ -114,7 +136,6 @@ if (!SpeechRecognition) {
             startRecognition();
         }
     });
-
     document.addEventListener('keyup', (e) => {
         if (e.code === 'Space' && spacebarPressed) {
             e.preventDefault();
@@ -123,6 +144,7 @@ if (!SpeechRecognition) {
         }
     });
 
+    //do things basd on recognized speech
     recognition.onresult = (event) => {
         const transcript = event.results[event.results.length-1][0].transcript.trim().toLowerCase();
         document.getElementById('vc-feedback').textContent = `You said: ${transcript}`;
@@ -132,17 +154,15 @@ if (!SpeechRecognition) {
             speak(`Ships will now place ${currentOrientation}ly. ${getCurrentInstruction()}`);
             return;
         }
-
         if (transcript.includes('save')) {
             handleSave();
             return;
         }
-
         if (transcript.includes('instructions') || transcript.includes('help')) {
             giveDetailedInstructions();
             return;
         }
-
+        //other handling of speech recognized
         if (gameStarted) {
             handleAttackCommand(transcript);
         } else if (currentStep === 'awaitingLength') {
@@ -152,12 +172,14 @@ if (!SpeechRecognition) {
         }
     };
 
+    //when player says ship to select
     function handleShipSelection(transcript) {
         if (availableShips[currentPlayer].length === 0) {
             speak("All ships have been placed. Say 'save' to continue.");
             return;
         }
 
+        //important! to recognize dimensions better
         const lengthMap = {
             'two': 2, 'to': 2, 'too': 2, '2': 2,
             'three': 3, 'tree': 3, '3': 3,
@@ -167,7 +189,8 @@ if (!SpeechRecognition) {
 
         const requestedLength = lengthMap[transcript];
         const available = getAvailableShips();
-
+ 
+        //to recognize length
         if (requestedLength && available.includes(requestedLength)) {
             selectedShipLength = requestedLength;
             currentStep = 'awaitingCoordinates';
@@ -177,6 +200,7 @@ if (!SpeechRecognition) {
         }
     }
 
+    //for player to place ship
     function handlePlacement(transcript) {
         if (availableShips[currentPlayer].length === 0) {
             speak("All ships have been placed. Say 'save' to continue.");
@@ -192,6 +216,7 @@ if (!SpeechRecognition) {
         const boardId = `${currentPlayer}-board`;
         const cell = document.querySelector(`#${boardId} .cell[data-row="${coords.row}"][data-column="${coords.col}"]`);
 
+        //IMPORTANT to place it at the position player wants
         if (placeShip(cell, selectedShipLength)) {
             const index = availableShips[currentPlayer].indexOf(selectedShipLength);
             if (index > -1) {
@@ -218,6 +243,7 @@ if (!SpeechRecognition) {
         }
     }
 
+    //important! where ship is placed
     function trackShipPlacement(startRow, startCol, length) {
         const cells = [];
         for (let i = 0; i < length; i++) {
@@ -232,7 +258,8 @@ if (!SpeechRecognition) {
             sunk: false
         });
     }
-
+    
+    //removing ship from pool
     function disableOneShipInPool(length) {
         const ships = Array.from(document.querySelectorAll(`#ship-pool .ship[data-length="${length}"]`))
             .filter(ship => !ship.style.opacity || ship.style.opacity === '1');
@@ -246,6 +273,7 @@ if (!SpeechRecognition) {
         }
     }
 
+    //when player says save, if player is 2 start game
     function handleSave() {
         if (availableShips[currentPlayer].length > 0) {
             speak(`Still ${availableShips[currentPlayer].length} ships to place. Say 'instructions' for help.`);
@@ -266,6 +294,7 @@ if (!SpeechRecognition) {
         }
     }
 
+    //attack commands handling
     function handleAttackCommand(transcript) {
         if (!gameStarted) {
             speak("Game over. Reload page to play again.");
@@ -291,7 +320,7 @@ if (!SpeechRecognition) {
             speak("Already attacked there. Try another coordinate.");
             return;
         }
-
+        
         const hitSound = document.getElementById('hit-sound');
         const missSound = document.getElementById('miss-sound');
         const sinkSound = document.getElementById('sink-sound');
@@ -301,12 +330,13 @@ if (!SpeechRecognition) {
         let sunkShipLength = null;
         let isHit = false;
 
+        //when something is hit
         if (cell.classList.contains('ship')) {
             isHit = true;
             cell.classList.add('hit');
             cell.style.backgroundColor = 'orange';
 
-            // Update ship status and check for sinking
+            // update looks j and play sound
             for (const ship of playerShips[opponent]) {
                 for (const part of ship.cells) {
                     if (part.row === coords.row && part.col === coords.col) {
@@ -323,6 +353,7 @@ if (!SpeechRecognition) {
                 }
             }
 
+            //when all ships of 1 player hit
             if (hitCounts[opponent] === totalShipParts) {
                 victorySound.currentTime = 0;
                 victorySound.play();
@@ -330,34 +361,34 @@ if (!SpeechRecognition) {
                 gameStarted = false;
                 return;
             }
-
             hitSound.currentTime = 0;
             hitSound.play();
             speak("Hit!");
 
             if (hitCausedSinking) {
-                // Calculate remaining unsunk ships
+                // calculations of ships remaining
                 const remainingShips = playerShips[opponent].filter(ship => !ship.sunk).length;
                 let remainingMessage = remainingShips > 0
                     ? `Opponent has ${remainingShips} ship${remainingShips !== 1 ? 's' : ''} remaining.`
                     : "All enemy ships destroyed!";
 
-                // Announce sinking after a brief delay
+                // announce sinking
                 setTimeout(() => {
                     speak(`You sunk a ${sunkShipLength}-unit ship! ${remainingMessage}`);
                     sinkSound.currentTime = 0;
                     sinkSound.play();
 
-                    // Then announce turn change after another brief delay
+                    //for announcing turn
                     setTimeout(() => {
                         if (gameStarted) {
                             currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
                             updateTurnIndicator();
                             speak(`${currentTurn}'s turn now. ${getCurrentInstruction()}`);
                         }
+                        //important! gives 5 sec time pause before announcing next player turn
                     }, 5000);
                 }, 1000);
-                return; // Skip the turn change at the bottom since we're handling it here
+                return;
             }
         } else {
             cell.classList.add('miss');
@@ -367,7 +398,7 @@ if (!SpeechRecognition) {
             speak("Miss.");
         }
 
-        // Switch turns only if game is still ongoing and it wasn't a winning move
+        // switch turns only if game is still on and no one won
         if (gameStarted) {
             currentTurn = currentTurn === 'player1' ? 'player2' : 'player1';
             updateTurnIndicator();
@@ -375,14 +406,16 @@ if (!SpeechRecognition) {
         }
     }
 
+    //taking turns
     function updateTurnIndicator() {
         const indicator = document.getElementById('current-turn');
         if (indicator) {
             indicator.textContent = currentTurn === 'player1' ? 'Player 1' : 'Player 2';
-            indicator.style.color = currentTurn === 'player1' ? 'blue' : 'red';
+            //indicator.style.color = currentTurn === 'player1' ? 'blue' : 'red';
         }
     }
 
+    //a new ship pool for saving (player 2)
     function resetShipPool() {
         const pool = document.getElementById('ship-pool');
         pool.innerHTML = '';
@@ -417,6 +450,7 @@ if (!SpeechRecognition) {
         return `${String.fromCharCode(65 + col)}${row + 1}`;
     }
 
+    //when placing a ship
     function placeShip(cell, length) {
         if (!cell) return false;
 
@@ -425,6 +459,7 @@ if (!SpeechRecognition) {
         const startCol = parseInt(cell.dataset.column);
         const cells = [];
 
+        //important! cell based
         for (let i = 0; i < length; i++) {
             const r = currentOrientation === 'horizontal' ? startRow : startRow + i;
             const c = currentOrientation === 'horizontal' ? startCol + i : startCol;
@@ -444,6 +479,7 @@ if (!SpeechRecognition) {
         return true;
     }
 
+    //initialize ships same way as script.js
     function initializeShipPool() {
         const pool = document.getElementById('ship-pool');
         pool.innerHTML = '';
@@ -470,6 +506,7 @@ if (!SpeechRecognition) {
         });
     }
 
+    //Initialize when loaded
     window.addEventListener('DOMContentLoaded', () => {
         initializeShipPool();
         updateTurnIndicator();
